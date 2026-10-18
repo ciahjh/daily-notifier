@@ -2,8 +2,8 @@ name: Send exchange rate
 
 on:
   schedule:
-    # 매일 00:00 UTC = 한국 시간 09:00
-    - cron: "0 0 * * *"
+    # 매일 23:47 UTC = 한국 시간 08:47 (정각을 피해 지연/누락을 줄이고 09:00 전후에 도착하도록 설정)
+    - cron: "47 23 * * *"
   workflow_dispatch:
 
 jobs:
