@@ -1,6 +1,6 @@
-# claude-playground
+# rate-notifier
 
-A playground for experimenting with Claude Code and MCP
+환율과 주요 원자재(금, 은, 구리) 가격을 매일 텔레그램으로 알려 주는 봇입니다.
 
 ## 환율·원자재 텔레그램 알림
 
