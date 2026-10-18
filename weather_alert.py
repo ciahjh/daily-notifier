@@ -50,14 +50,14 @@ def send_telegram(token, chat_id, text):
 
 
 def build_rain_text(threshold):
-    """강수확률이 threshold% 이상인 도시가 없으면 None을 반환한다."""
+    """강수확률이 threshold% 이상인 도시를 알리고, 없으면 비 소식이 없다고 알린다."""
     rainy = [
         (name, prob)
         for name, prob in fetch_rain_probabilities(CITIES)
         if prob is not None and prob >= threshold
     ]
     if not rainy:
-        return None
+        return f"강수 알림\n오늘은 강수확률 {threshold}% 이상인 도시가 없습니다. 비 소식 없음"
     rainy.sort(key=lambda item: item[1], reverse=True)
     lines = [f"강수 알림 (오늘 강수확률 {threshold}% 이상)"]
     lines += [f"{name}: {prob}%" for name, prob in rainy]
@@ -71,11 +71,8 @@ def main():
     threshold = int(os.environ.get("RAIN_THRESHOLD") or DEFAULT_RAIN_THRESHOLD)
 
     text = build_rain_text(threshold)
-    if text:
-        send_telegram(token, chat_id, text)
-        print(text)
-    else:
-        print(f"강수확률 {threshold}% 이상인 도시가 없어 알림을 보내지 않았습니다.")
+    send_telegram(token, chat_id, text)
+    print(text)
 
 
 if __name__ == "__main__":
