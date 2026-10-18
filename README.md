@@ -35,7 +35,7 @@ JPY 100엔: 846.65원
   - `fetch_krw_rate(base)`: Frankfurter v2 API에서 KRW 환율 조회
   - `fetch_usd_price(symbol)`: gold-api.com에서 원자재 USD 가격 조회 (`XAU` 금, `XAG` 은, `HG` 구리)
   - `send_telegram(token, chat_id, text)`: 텔레그램 Bot API로 메시지 전송
-  - `main()`: 위 둘을 조합해 환율과 원자재 메시지 생성 및 전송
+  - `main()`: 위 함수들을 조합해 환율과 원자재 메시지를 만들어 전송
 - `send-rate.yml`: cron 또는 수동 실행(`workflow_dispatch`)으로 시작됩니다.
 
 ### 설정
