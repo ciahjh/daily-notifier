@@ -11,42 +11,17 @@ G_PER_OZ = 31.1034768
 OZ_PER_KG = 1000 / G_PER_OZ
 LB_PER_KG = 1 / 0.45359237
 
-# 기본 위치: 서울
-DEFAULT_LATITUDE = "37.5665"
-DEFAULT_LONGITUDE = "126.9780"
-DEFAULT_CITY = "서울"
-
-# WMO 날씨 코드 -> 설명
-WEATHER_CODES = {
-    0: "맑음",
-    1: "대체로 맑음",
-    2: "구름 조금",
-    3: "흐림",
-    45: "안개",
-    48: "안개",
-    51: "약한 이슬비",
-    53: "이슬비",
-    55: "강한 이슬비",
-    56: "얼어붙는 이슬비",
-    57: "얼어붙는 이슬비",
-    61: "약한 비",
-    63: "비",
-    65: "강한 비",
-    66: "얼어붙는 비",
-    67: "얼어붙는 비",
-    71: "약한 눈",
-    73: "눈",
-    75: "강한 눈",
-    77: "싸락눈",
-    80: "약한 소나기",
-    81: "소나기",
-    82: "강한 소나기",
-    85: "약한 눈 소나기",
-    86: "강한 눈 소나기",
-    95: "뇌우",
-    96: "우박 동반 뇌우",
-    99: "우박 동반 뇌우",
-}
+# 강수 알림 대상 도시 (이름, 위도, 경도)
+CITIES = [
+    ("서울", 37.5665, 126.9780),
+    ("부산", 35.1796, 129.0756),
+    ("대구", 35.8714, 128.6014),
+    ("광주", 35.1595, 126.8526),
+    ("대전", 36.3504, 127.3845),
+    ("인천", 37.4563, 126.7052),
+    ("울산", 35.5384, 129.3114),
+]
+DEFAULT_RAIN_THRESHOLD = 50
 
 
 def fetch_krw_rate(base):
@@ -63,13 +38,13 @@ def fetch_usd_price(symbol):
         return json.load(res)["price"]
 
 
-def fetch_weather(latitude, longitude):
+def fetch_rain_probabilities(cities):
+    """도시별 오늘의 최대 강수확률(%)을 (이름, 확률) 목록으로 반환한다."""
     query = urllib.parse.urlencode(
         {
-            "latitude": latitude,
-            "longitude": longitude,
-            "current": "temperature_2m,apparent_temperature,weather_code",
-            "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+            "latitude": ",".join(str(lat) for _, lat, _ in cities),
+            "longitude": ",".join(str(lon) for _, _, lon in cities),
+            "daily": "precipitation_probability_max",
             "timezone": "Asia/Seoul",
             "forecast_days": 1,
         }
@@ -77,16 +52,13 @@ def fetch_weather(latitude, longitude):
     req = urllib.request.Request(f"{WEATHER_URL}?{query}", headers=HEADERS)
     with urllib.request.urlopen(req, timeout=10) as res:
         data = json.load(res)
-    current = data["current"]
-    daily = data["daily"]
-    return {
-        "desc": WEATHER_CODES.get(current["weather_code"], "알 수 없음"),
-        "temp": current["temperature_2m"],
-        "feels": current["apparent_temperature"],
-        "high": daily["temperature_2m_max"][0],
-        "low": daily["temperature_2m_min"][0],
-        "rain": daily["precipitation_probability_max"][0],
-    }
+    # 위치가 여러 개면 위치별 결과의 배열로 응답한다.
+    if isinstance(data, dict):
+        data = [data]
+    return [
+        (name, item["daily"]["precipitation_probability_max"][0])
+        for (name, _, _), item in zip(cities, data)
+    ]
 
 
 def send_telegram(token, chat_id, text):
@@ -96,12 +68,7 @@ def send_telegram(token, chat_id, text):
         res.read()
 
 
-def build_text():
-    # 비어 있는 환경 변수가 넘어와도 기본값을 쓰도록 or를 사용한다.
-    city = os.environ.get("WEATHER_CITY") or DEFAULT_CITY
-    latitude = os.environ.get("WEATHER_LATITUDE") or DEFAULT_LATITUDE
-    longitude = os.environ.get("WEATHER_LONGITUDE") or DEFAULT_LONGITUDE
-
+def build_rate_text():
     usd, date = fetch_krw_rate("USD")
     eur, _ = fetch_krw_rate("EUR")
     jpy, _ = fetch_krw_rate("JPY")
@@ -110,14 +77,7 @@ def build_text():
     silver = fetch_usd_price("XAG")
     copper = fetch_usd_price("HG")
 
-    weather = fetch_weather(latitude, longitude)
-
     return (
-        f"날씨 ({city})\n"
-        f"{weather['desc']}, 현재 {weather['temp']:.1f}°C (체감 {weather['feels']:.1f}°C)\n"
-        f"최저 {weather['low']:.1f}°C / 최고 {weather['high']:.1f}°C\n"
-        f"강수확률: {weather['rain']}%\n"
-        f"\n"
         f"환율 ({date} 기준)\n"
         f"USD 1달러: {usd:,.2f}원\n"
         f"EUR 1유로: {eur:,.2f}원\n"
@@ -130,13 +90,38 @@ def build_text():
     )
 
 
+def build_rain_text(threshold):
+    """강수확률이 threshold% 이상인 도시가 없으면 None을 반환한다."""
+    rainy = [
+        (name, prob)
+        for name, prob in fetch_rain_probabilities(CITIES)
+        if prob is not None and prob >= threshold
+    ]
+    if not rainy:
+        return None
+    rainy.sort(key=lambda item: item[1], reverse=True)
+    lines = [f"강수 알림 (오늘 강수확률 {threshold}% 이상)"]
+    lines += [f"{name}: {prob}%" for name, prob in rainy]
+    return "\n".join(lines)
+
+
 def main():
     token = os.environ["TELEGRAM_TOKEN"]
     chat_id = os.environ["TELEGRAM_CHAT_ID"]
+    # 비어 있는 환경 변수가 넘어와도 기본값을 쓰도록 or를 사용한다.
+    threshold = int(os.environ.get("RAIN_THRESHOLD") or DEFAULT_RAIN_THRESHOLD)
 
-    text = build_text()
-    send_telegram(token, chat_id, text)
-    print(text)
+    rate_text = build_rate_text()
+    send_telegram(token, chat_id, rate_text)
+    print(rate_text)
+
+    rain_text = build_rain_text(threshold)
+    if rain_text:
+        send_telegram(token, chat_id, rain_text)
+        print()
+        print(rain_text)
+    else:
+        print(f"\n강수확률 {threshold}% 이상인 도시가 없어 강수 알림은 보내지 않았습니다.")
 
 
 if __name__ == "__main__":
