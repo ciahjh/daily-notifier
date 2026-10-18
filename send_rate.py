@@ -4,6 +4,7 @@ import urllib.parse
 import urllib.request
 
 API_URL = "https://api.frankfurter.dev/v2/rates"
+METAL_URL = "https://api.gold-api.com/price"
 HEADERS = {"User-Agent": "send-rate/1.0"}
 
 
@@ -13,6 +14,12 @@ def fetch_krw_rate(base):
     with urllib.request.urlopen(req, timeout=10) as res:
         data = json.load(res)[0]
     return data["rate"], data["date"]
+
+
+def fetch_usd_price(symbol):
+    req = urllib.request.Request(f"{METAL_URL}/{symbol}", headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=10) as res:
+        return json.load(res)["price"]
 
 
 def send_telegram(token, chat_id, text):
@@ -30,11 +37,20 @@ def main():
     eur, _ = fetch_krw_rate("EUR")
     jpy, _ = fetch_krw_rate("JPY")
 
+    gold = fetch_usd_price("XAU")
+    silver = fetch_usd_price("XAG")
+    copper = fetch_usd_price("HG")
+
     text = (
         f"환율 ({date} 기준)\n"
         f"USD 1달러: {usd:,.2f}원\n"
         f"EUR 1유로: {eur:,.2f}원\n"
-        f"JPY 100엔: {jpy * 100:,.2f}원"
+        f"JPY 100엔: {jpy * 100:,.2f}원\n"
+        f"\n"
+        f"원자재 (USD)\n"
+        f"금: ${gold:,.2f}/oz\n"
+        f"은: ${silver:,.2f}/oz\n"
+        f"구리: ${copper:,.4f}/lb"
     )
     send_telegram(token, chat_id, text)
     print(text)

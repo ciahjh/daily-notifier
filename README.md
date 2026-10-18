@@ -2,9 +2,9 @@
 
 A playground for experimenting with Claude Code and MCP
 
-## 환율 텔레그램 알림
+## 환율·원자재 텔레그램 알림
 
-[Frankfurter API](https://frankfurter.dev)로 USD, EUR, 100엔(JPY)의 원화 환율을 가져와 텔레그램으로 보냅니다. GitHub Actions가 매일 한국 시간 오전 9시에 실행합니다.
+[Frankfurter API](https://frankfurter.dev)로 USD, EUR, 100엔(JPY)의 원화 환율을, [gold-api.com](https://gold-api.com)으로 금, 은, 구리 가격(USD)을 가져와 텔레그램으로 보냅니다. GitHub Actions가 매일 한국 시간 오전 9시에 실행합니다.
 
 메시지 예시:
 
@@ -13,7 +13,14 @@ A playground for experimenting with Claude Code and MCP
 USD 1달러: 1,338.31원
 EUR 1유로: 1,503.02원
 JPY 100엔: 846.65원
+
+원자재 (USD)
+금: $4,166.10/oz
+은: $57.12/oz
+구리: $6.6167/lb
 ```
+
+금과 은은 트로이온스(oz)당, 구리는 파운드(lb)당 가격입니다.
 
 ### 구조
 
@@ -26,8 +33,9 @@ JPY 100엔: 846.65원
 
 - `send_rate.py`: 표준 라이브러리만 사용하므로 별도 설치가 필요 없습니다.
   - `fetch_krw_rate(base)`: Frankfurter v2 API에서 KRW 환율 조회
+  - `fetch_usd_price(symbol)`: gold-api.com에서 원자재 USD 가격 조회 (`XAU` 금, `XAG` 은, `HG` 구리)
   - `send_telegram(token, chat_id, text)`: 텔레그램 Bot API로 메시지 전송
-  - `main()`: 위 둘을 조합해 USD, EUR, JPY(100엔 환산) 메시지 생성 및 전송
+  - `main()`: 위 둘을 조합해 환율과 원자재 메시지 생성 및 전송
 - `send-rate.yml`: cron 또는 수동 실행(`workflow_dispatch`)으로 시작됩니다.
 
 ### 설정
