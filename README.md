@@ -2,7 +2,7 @@
 
 환율과 주요 원자재(금, 은, 구리) 가격을 매일 텔레그램으로 알려 주는 봇입니다.
 
-## 환율·원자재 텔레그램 알림
+## 개요
 
 [Frankfurter API](https://frankfurter.dev)로 USD, EUR, 100엔(JPY)의 원화 환율을, [gold-api.com](https://gold-api.com)으로 금, 은, 구리 가격(USD)을 가져와 텔레그램으로 보냅니다. GitHub Actions가 매일 한국 시간 오전 9시에 실행합니다.
 
