@@ -1,0 +1,20 @@
+name: Send rain alert
+
+on:
+  schedule:
+    # 매일 21:00 UTC = 한국 시간 06:00
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python weather_alert.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          WEATHER_CHAT_ID: ${{ secrets.WEATHER_CHAT_ID }}
