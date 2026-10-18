@@ -49,7 +49,7 @@ def main():
         f"EUR 1유로: {eur:,.2f}원\n"
         f"JPY 100엔: {jpy * 100:,.2f}원\n"
         f"\n"
-        f"원자재 (USD, 원화는 kg당)\n"
+        f"원자재 (USD, 원화는 kg)\n"
         f"금: ${gold:,.2f}/oz ({gold * OZ_PER_KG * usd:,.0f}원/kg)\n"
         f"은: ${silver:,.2f}/oz ({silver * OZ_PER_KG * usd:,.0f}원/kg)\n"
         f"구리: ${copper:,.4f}/lb ({copper * LB_PER_KG * usd:,.0f}원/kg)"
