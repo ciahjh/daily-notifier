@@ -6,7 +6,8 @@ import urllib.request
 API_URL = "https://api.frankfurter.dev/v2/rates"
 METAL_URL = "https://api.gold-api.com/price"
 HEADERS = {"User-Agent": "send-rate/1.0"}
-OZ_PER_KG = 1000 / 31.1034768
+G_PER_OZ = 31.1034768
+OZ_PER_KG = 1000 / G_PER_OZ
 LB_PER_KG = 1 / 0.45359237
 
 
@@ -49,8 +50,8 @@ def main():
         f"EUR 1유로: {eur:,.2f}원\n"
         f"JPY 100엔: {jpy * 100:,.2f}원\n"
         f"\n"
-        f"원자재 (USD, 원화는 kg)\n"
-        f"금: ${gold:,.2f}/oz ({gold * OZ_PER_KG * usd:,.0f}원/kg)\n"
+        f"원자재 (USD / 원화)\n"
+        f"금: ${gold:,.2f}/oz ({gold / G_PER_OZ * usd:,.0f}원/g)\n"
         f"은: ${silver:,.2f}/oz ({silver * OZ_PER_KG * usd:,.0f}원/kg)\n"
         f"구리: ${copper:,.4f}/lb ({copper * LB_PER_KG * usd:,.0f}원/kg)"
     )
