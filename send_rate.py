@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import urllib.parse
@@ -9,6 +10,7 @@ HEADERS = {"User-Agent": "send-rate/1.0"}
 G_PER_OZ = 31.1034768
 OZ_PER_KG = 1000 / G_PER_OZ
 LB_PER_KG = 1 / 0.45359237
+WEEKDAYS = "월화수목금토일"
 
 
 def fetch_krw_rate(base):
@@ -25,6 +27,11 @@ def fetch_usd_price(symbol):
         return json.load(res)["price"]
 
 
+def format_date(date):
+    day = datetime.date.fromisoformat(date)
+    return f"{date} ({WEEKDAYS[day.weekday()]})"
+
+
 def send_telegram(token, chat_id, text):
     body = urllib.parse.urlencode({"chat_id": chat_id, "text": text}).encode()
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -32,10 +39,7 @@ def send_telegram(token, chat_id, text):
         res.read()
 
 
-def main():
-    token = os.environ["TELEGRAM_TOKEN"]
-    chat_id = os.environ["TELEGRAM_CHAT_ID"]
-
+def build_text():
     usd, date = fetch_krw_rate("USD")
     eur, _ = fetch_krw_rate("EUR")
     jpy, _ = fetch_krw_rate("JPY")
@@ -44,8 +48,8 @@ def main():
     silver = fetch_usd_price("XAG")
     copper = fetch_usd_price("HG")
 
-    text = (
-        f"환율 ({date} 기준)\n"
+    return (
+        f"환율 - {format_date(date)} 기준\n"
         f"USD 1달러: {usd:,.2f}원\n"
         f"EUR 1유로: {eur:,.2f}원\n"
         f"JPY 100엔: {jpy * 100:,.2f}원\n"
@@ -55,6 +59,13 @@ def main():
         f"은: ${silver:,.2f}/oz ({silver * OZ_PER_KG * usd:,.0f}원/kg)\n"
         f"구리: ${copper:,.4f}/lb ({copper * LB_PER_KG * usd:,.0f}원/kg)"
     )
+
+
+def main():
+    token = os.environ["TELEGRAM_TOKEN"]
+    chat_id = os.environ["TELEGRAM_CHAT_ID"]
+
+    text = build_text()
     send_telegram(token, chat_id, text)
     print(text)
 
