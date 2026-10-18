@@ -48,9 +48,9 @@ def main():
         f"JPY 100엔: {jpy * 100:,.2f}원\n"
         f"\n"
         f"원자재 (USD, 원화 환산)\n"
-        f"금: ${gold:,.2f}/oz ({gold * usd:,.0f}원)\n"
-        f"은: ${silver:,.2f}/oz ({silver * usd:,.0f}원)\n"
-        f"구리: ${copper:,.4f}/lb ({copper * usd:,.0f}원)"
+        f"금: ${gold:,.2f}/oz ({gold * usd:,.0f}원/oz)\n"
+        f"은: ${silver:,.2f}/oz ({silver * usd:,.0f}원/oz)\n"
+        f"구리: ${copper:,.4f}/lb ({copper * usd:,.0f}원/lb)"
     )
     send_telegram(token, chat_id, text)
     print(text)
