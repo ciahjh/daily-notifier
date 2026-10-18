@@ -16,12 +16,12 @@
 
 ### 환율/원자재 알림
 
-[Frankfurter API](https://frankfurter.dev)로 USD, EUR, 100엔(JPY)의 원화 환율을, [gold-api.com](https://gold-api.com)으로 금, 은, 구리 가격(USD)을 가져와 텔레그램으로 보냅니다.
+[Frankfurter API](https://frankfurter.dev)로 USD, EUR, 100엔(JPY)의 원화 환율을, [gold-api.com](https://gold-api.com)으로 금, 은, 구리 가격(USD)을 가져와 텔레그램으로 보냅니다. 제목에 환율 기준 날짜와 요일이 함께 표시됩니다.
 
 메시지 예시:
 
 ```
-환율 (2026-10-18 기준)
+환율 - 2026-10-18 (일) 기준
 USD 1달러: 1,338.31원
 EUR 1유로: 1,503.02원
 JPY 100엔: 846.65원
@@ -72,8 +72,10 @@ JPY 100엔: 846.65원
 - `send_rate.py`: 표준 라이브러리만 사용하므로 별도 설치가 필요 없습니다.
   - `fetch_krw_rate(base)`: Frankfurter v2 API에서 KRW 환율 조회
   - `fetch_usd_price(symbol)`: gold-api.com에서 원자재 USD 가격 조회 (`XAU` 금, `XAG` 은, `HG` 구리)
+  - `format_date(date)`: `2026-10-18 (일)` 형식으로 날짜와 요일을 만듦
   - `send_telegram(token, chat_id, text)`: 텔레그램 Bot API로 메시지 전송
-  - `main()`: 위 함수들을 조합해 환율과 원자재 메시지를 만들어 전송
+  - `build_text()`: 환율과 원자재 메시지를 만듦
+  - `main()`: 메시지를 `TELEGRAM_CHAT_ID`로 전송
 - `weather_alert.py`: 마찬가지로 표준 라이브러리만 사용합니다.
   - `fetch_rain_probabilities(cities)`: Open-Meteo에서 예보 날짜와 여러 도시의 오늘 강수확률을 한 번에 조회
   - `format_date(date)`: `2026-10-18 (일)` 형식으로 날짜와 요일을 만듦
