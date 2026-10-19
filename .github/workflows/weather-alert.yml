@@ -1,9 +1,7 @@
 name: Send rain alert
 
 on:
-  schedule:
-    # 매일 20:47 UTC = 한국 시간 05:47 (정각을 피해 지연/누락을 줄이고 06:00 전후에 도착하도록 설정)
-    - cron: "47 20 * * *"
+  # 외부 스케줄러(cron-job.org)가 매일 05:47 KST에 workflow_dispatch API로 호출한다.
   workflow_dispatch:
 
 jobs:
